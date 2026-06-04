@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>פרויקטים • Datalog</title>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --primary:#2c5f5f;          /* Teal שלך */
+      --secondary:#ff8c42;        /* כתום */
+      --accent:#ffd23f;           /* צהוב */
+      --ink:#0b2330;              /* טקסט כהה */
+      --bg:#ffffff;
+      --muted:#eef3f3;
+      --ring:rgba(44,95,95,.35);
+      --card:#ffffff;
+      --shadow:0 10px 30px rgba(0,0,0,.08);
+      --radius:18px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Heebo,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.55;min-height:100vh}
+    body{display:flex;flex-direction:column}
+    .template-hero{flex:1}
+    .footer{margin-top:auto}
+
+    /* ===== Navbar (פשוט ונקי) ===== */
+    .navbar{position:sticky;top:0;z-index:50;background:linear-gradient(180deg,#ffffff 0%, #fafdfd 100%);border-bottom:1px solid #eef2f2}
+    .nav-container{max-width:1100px;margin:auto;display:flex;align-items:center;justify-content:space-between;padding:14px 18px;gap:14px}
+    .nav-menu{display:flex;gap:20px;list-style:none;margin:0;padding:0}
+    .nav-menu a{color:#17323f;text-decoration:none;font-weight:500;padding:10px 14px;border-radius:12px}
+    .nav-menu a:hover{background:#f3f8f8}
+    .nav-logo-img{height:38px;display:block}
+    .hamburger{display:none}
+
+    /* ===== Hero ===== */
+    .template-hero{padding:56px 18px 30px;background:
+      radial-gradient(1200px 350px at 80% -50%, rgba(44,95,95,.10), transparent 70%),
+      radial-gradient(1200px 350px at -20% -60%, rgba(255,210,63,.12), transparent 70%),
+      #fff;}
+    .container{max-width:1100px;margin:auto}
+    .section-title{font-size:36px;margin:0 0 8px}
+    .template-subtitle{margin:0;color:#496168}
+
+    /* ===== Tabs ===== */
+    .tabs-wrap{margin-top:24px;background:var(--card);border:1px solid #e9f0f0;border-radius:var(--radius);box-shadow:var(--shadow)}
+    .tabs-header{display:flex;gap:10px;flex-wrap:wrap;padding:14px;border-bottom:1px solid #eef2f2}
+    .tab-btn{
+      appearance:none;border:0;background:#f2f8f8;color:#0f2f39;
+      padding:10px 14px;border-radius:12px;font-weight:600;cursor:pointer;
+      transition:.2s transform,.2s background;
+      outline:2px solid transparent;outline-offset:2px;
+    }
+    .tab-btn:hover{transform:translateY(-1px);background:#e9f3f3}
+    .tab-btn[aria-selected="true"]{background:var(--primary);color:#fff;box-shadow:0 6px 18px rgba(44,95,95,.25)}
+
+    /* ===== Project card ===== */
+    .tab-panel{display:none;padding:18px}
+    .tab-panel[aria-hidden="false"]{display:block}
+
+    .project-card{display:block;position:relative}
+    @media (max-width:900px){.project-card{grid-template-columns:1fr}}
+
+    .gallery{
+      position:relative;background:#fff;border:1px solid #e9f0f0;border-radius:16px;overflow:visible;box-shadow:var(--shadow);display:flex;align-items:center;gap:20px;padding:20px;min-height:400px
+    }
+    .gallery-main{position:relative;flex:1;aspect-ratio:16/10;display:grid;place-items:center;background:linear-gradient(180deg,#f9fcfc, #f2f7f7);border-radius:12px;overflow:hidden}
+    .gallery-main-img{width:100%;height:100%;object-fit:contain;cursor:zoom-in;display:block}
+    .gallery-dots{position:absolute;inset:auto 0 10px 0;display:flex;justify-content:center;gap:8px}
+    .dot{width:8px;height:8px;border-radius:999px;background:#cfe2e2;outline:2px solid transparent}
+    .dot.is-active{background:var(--primary)}
+
+    .arrow{
+      position:relative;flex-shrink:0;
+      width:60px;height:60px;border-radius:50%;
+      display:grid;place-items:center;border:2px solid var(--primary);background:#fff;
+      box-shadow:0 8px 24px rgba(44,95,95,.2);
+      cursor:pointer;font-size:32px;font-weight:bold;color:var(--primary);user-select:none;transition:all .2s
+    }
+    .arrow:hover{background:var(--primary);color:#fff;transform:scale(1.1);box-shadow:0 10px 30px rgba(44,95,95,.3)}
+    .arrow:active{transform:scale(0.95)}
+    .arrow.is-hidden{opacity:.3;pointer-events:none}
+
+    .thumbs{display:none}
+    .thumb{width:74px;aspect-ratio:16/10;border-radius:10px;border:2px solid transparent;cursor:pointer;opacity:.85}
+    .thumb:is(:hover,.active){border-color:var(--primary);opacity:1}
+
+    /* ===== Lightbox ===== */
+    .lightbox{position:fixed;inset:0;display:grid;place-items:center;background:rgba(7,19,24,.65);backdrop-filter:blur(2px);z-index:80;opacity:0;pointer-events:none;transition:.2s}
+    .lightbox[aria-hidden="false"]{opacity:1;pointer-events:auto}
+    .lightbox-img{max-width:min(1100px,90vw);max-height:86vh;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+    .lightbox-close{position:absolute;top:18px;inset-inline-end:18px;background:#fff;border:1px solid #e6efef;border-radius:12px;width:40px;height:40px;display:grid;place-items:center;font-size:20px;cursor:pointer}
+
+    /* ===== Footer ===== */
+    .footer{background:#588e94;color:#cfe4e2;padding:40px 0;margin-top:40px}
+    .footer .container{max-width:1200px;margin:auto;width:min(100% - 32px, 1200px)}
+    .footer-content{display:grid;grid-template-columns:1fr auto;align-items:center;gap:16px}
+    .footer-logo{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:14px}
+    .footer-logo-img{height:clamp(40px, 6vw, 64px);width:auto;object-fit:contain;filter:drop-shadow(0 6px 12px rgba(0,0,0,.25))}
+    .footer-logo p{margin:0;font-weight:700;color:#e6f3f2}
+    .footer-info p{margin:0;color:#9fc0bd;font-weight:600}
+    @media (max-width:900px){
+      .gallery{flex-direction:column;padding:15px}
+      .arrow{width:50px;height:50px;font-size:28px}
+    }
+    @media (max-width:640px){.nav-menu{display:none}}
+  </style>
+</head>
+<body>
+
+  <!-- ===== Navbar ===== -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <ul class="nav-menu">
+        <li><a href="index.html#home">בית</a></li>
+        <li><a href="index.html#about">אודות</a></li>
+        <li><a href="index.html#services">שירותים</a></li>
+        <li><a href="templates.html" aria-current="page">פרויקטים</a></li>
+        <li><a href="index.html#contact">צור קשר</a></li>
+      </ul>
+      <a href="index.html" class="nav-logo"><img src="NAVBAR LOGO.jpg" alt="Datalog" class="nav-logo-img"></a>
+    </div>
+  </nav>
+
+  <!-- ===== Hero ===== -->
+  <section class="template-hero">
+    <div class="container">
+      <h1 class="section-title">פרויקטים</h1>
+      <p class="template-subtitle">בחרו פרויקט כדי לצפות בגלריה ובפרטים</p>
+
+      <div class="tabs-wrap" role="tablist" aria-label="Projects">
+        <div class="tabs-header">
+          <button class="tab-btn" role="tab" aria-selected="true" aria-controls="panel-1" id="tab-1">מערכת ניהול מוקד</button>
+          <button class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-2" id="tab-2">מערכת ניטור התראות</button>
+          <!-- <button class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-3" id="tab-3">ניהול מערכת פניות</button> -->
+        </div>
+
+        <!-- ===== Panel 1 - Moked ===== -->
+        <section class="tab-panel" id="panel-1" role="tabpanel" aria-labelledby="tab-1" aria-hidden="false">
+          <article class="project-card">
+            <!-- Gallery -->
+            <div class="gallery" data-album="moked">
+              <button class="arrow prev" aria-label="הקודם">‹</button>
+              <div class="gallery-main">
+                <img class="gallery-main-img" src="Moked/MOKED6.png" alt="מערכת ניהול מוקד - מסך ראשי" loading="eager">
+                <div class="gallery-dots" aria-hidden="true"></div>
+              </div>
+              <button class="arrow next" aria-label="הבא">›</button>
+              <div class="thumbs" style="display:none">
+                <img class="thumb active" src="Moked/MOKED6.png" alt="תצוגה מקדימה 6" data-full="Moked/MOKED6.png" loading="lazy">
+                <img class="thumb" src="Moked/MOKED5.png" alt="תצוגה מקדימה 5" data-full="Moked/MOKED5.png" loading="lazy">
+                <img class="thumb" src="Moked/MOKED4.png" alt="תצוגה מקדימה 4" data-full="Moked/MOKED4.png" loading="lazy">
+                <img class="thumb" src="Moked/MOKED3.png" alt="תצוגה מקדימה 3" data-full="Moked/MOKED3.png" loading="lazy">
+                <img class="thumb" src="Moked/MOKED2.png" alt="תצוגה מקדימה 2" data-full="Moked/MOKED2.png" loading="lazy">
+                <img class="thumb" src="Moked/MOKED1.png" alt="תצוגה מקדימה 1" data-full="Moked/MOKED1.png" loading="lazy">
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <!-- ===== Panel 2 - Tkolim ===== -->
+        <section class="tab-panel" id="panel-2" role="tabpanel" aria-labelledby="tab-2" aria-hidden="true">
+          <article class="project-card">
+            <div class="gallery" data-album="tkolim">
+              <button class="arrow prev" aria-label="הקודם">‹</button>
+              <div class="gallery-main">
+                <img class="gallery-main-img" src="Tkolim/Tkolim5.png" alt="מערכת ניטור התראות - מסך ראשי" loading="eager">
+                <div class="gallery-dots" aria-hidden="true"></div>
+              </div>
+              <button class="arrow next" aria-label="הבא">›</button>
+              <div class="thumbs" style="display:none">
+                <img class="thumb active" src="Tkolim/Tkolim5.png" alt="תצוגה מקדימה 5" data-full="Tkolim/Tkolim5.png" loading="lazy">
+                <img class="thumb" src="Tkolim/Tkolim4.png" alt="תצוגה מקדימה 4" data-full="Tkolim/Tkolim4.png" loading="lazy">
+                <img class="thumb" src="Tkolim/Tkolim3.png" alt="תצוגה מקדימה 3" data-full="Tkolim/Tkolim3.png" loading="lazy">
+                <img class="thumb" src="Tkolim/Tkolim2.png" alt="תצוגה מקדימה 2" data-full="Tkolim/Tkolim2.png" loading="lazy">
+                <img class="thumb" src="Tkolim/Tkolim1.png" alt="תצוגה מקדימה 1" data-full="Tkolim/Tkolim1.png" loading="lazy">
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <!-- ===== Panel 3 - ניהול מערכת פניות ===== -->
+        <!--
+        <section class="tab-panel" id="panel-3" role="tabpanel" aria-labelledby="tab-3" aria-hidden="true">
+          <article class="project-card">
+            <div class="gallery" data-album="pninot">
+              <button class="arrow prev" aria-label="הקודם">‹</button>
+              <div class="gallery-main">
+                <img class="gallery-main-img" src="ניהול מערכת פניות/Nihul11.png" alt="ניהול מערכת פניות - מסך ראשי" loading="eager">
+                <div class="gallery-dots" aria-hidden="true"></div>
+              </div>
+              <button class="arrow next" aria-label="הבא">›</button>
+              <div class="thumbs" style="display:none">
+                <img class="thumb active" src="ניהול מערכת פניות/Nihul11.png" alt="תצוגה מקדימה 11" data-full="ניהול מערכת פניות/Nihul11.png" loading="lazy">
+                <img class="thumb" src="ניהול מערכת פניות/Nihul10.png" alt="תצוגה מקדימה 10" data-full="ניהול מערכת פניות/Nihul10.png" loading="lazy">
+                <img class="thumb" src="ניהול מערכת פניות/Nihul9.png" alt="תצוגה מקדימה 9" data-full="ניהול מערכת פניות/Nihul9.png" loading="lazy">
+                <img class="thumb" src="ניהול מערכת פניות/Nihul8.png" alt="תצוגה מקדימה 8" data-full="ניהול מערכת פניות/Nihul8.png" loading="lazy">
+                <img class="thumb" src="ניהול מערכת פניות/Nihul7.png" alt="תצוגה מקדימה 7" data-full="ניהול מערכת פניות/Nihul7.png" loading="lazy">
+                <img class="thumb" src="ניהול מערכת פניות/Nihul6.png" alt="תצוגה מקדימה 6" data-full="ניהול מערכת פניות/Nihul6.png" loading="lazy">
+                <img class="thumb" src="ניהול מערכת פניות/Nihul5.png" alt="תצוגה מקדימה 5" data-full="ניהול מערכת פניות/Nihul5.png" loading="lazy">
+                <img class="thumb" src="ניהול מערכת פניות/Nihul4.png" alt="תצוגה מקדימה 4" data-full="ניהול מערכת פניות/Nihul4.png" loading="lazy">
+                <img class="thumb" src="ניהול מערכת פניות/Nihul3.png" alt="תצוגה מקדימה 3" data-full="ניהול מערכת פניות/Nihul3.png" loading="lazy">
+                <img class="thumb" src="ניהול מערכת פניות/Nihul2.png" alt="תצוגה מקדימה 2" data-full="ניהול מערכת פניות/Nihul2.png" loading="lazy">
+                <img class="thumb" src="ניהול מערכת פניות/Nihul1.png" alt="תצוגה מקדימה 1" data-full="ניהול מערכת פניות/Nihul1.png" loading="lazy">
+              </div>
+            </div>
+          </article>
+        </section>
+        -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Lightbox ===== -->
+  <div class="lightbox" id="lightbox" aria-hidden="true">
+    <img class="lightbox-img" id="lightboxImg" alt="">
+    <button class="lightbox-close" id="lightboxClose" aria-label="סגירה">×</button>
+  </div>
+
+  <!-- ===== Footer ===== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-logo">
+          <img src="Footer logo.png" alt="Datalog Logo" class="footer-logo-img">
+        </div>
+        <div class="footer-info">
+          <p>&copy; 2025 Datalog. כל הזכויות שמורות.</p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ===== Tabs (נגישות + מקלדת)
+    const tabs = [...document.querySelectorAll('[role="tab"]')];
+    const panels = [...document.querySelectorAll('[role="tabpanel"]')];
+
+    function setActiveTab(idx){
+      tabs.forEach((t,i)=>{
+        t.setAttribute('aria-selected', i===idx ? 'true' : 'false');
+        panels[i].setAttribute('aria-hidden', i===idx ? 'false' : 'true');
+      });
+    }
+    tabs.forEach((btn,i)=>{
+      btn.addEventListener('click', ()=>setActiveTab(i));
+      btn.addEventListener('keydown', (e)=>{
+        if(e.key==='ArrowLeft' || e.key==='ArrowRight'){
+          e.preventDefault();
+          const dir = e.key==='ArrowLeft' ? -1 : 1;
+          const next = (i + dir + tabs.length) % tabs.length;
+          tabs[next].focus();
+          setActiveTab(next);
+        }
+      });
+    });
+
+    // ===== Gallery logic (חצים, נקודות, תמונות מקדימות)
+    document.querySelectorAll('.gallery').forEach(gal=>{
+      const mainImg = gal.querySelector('.gallery-main-img');
+      const thumbs = [...gal.querySelectorAll('.thumb')];
+      const prev = gal.querySelector('.prev');
+      const next = gal.querySelector('.next');
+      const dotsWrap = gal.querySelector('.gallery-dots');
+
+      // dots
+      const dots = thumbs.map((_,i)=>{
+        const d=document.createElement('span');
+        d.className='dot'+(i===0?' is-active':'');
+        d.addEventListener('click', ()=>select(i));
+        dotsWrap.appendChild(d);
+        return d;
+      });
+
+      function select(i){
+        thumbs.forEach(t=>t.classList.remove('active'));
+        thumbs[i].classList.add('active');
+        mainImg.src = thumbs[i].dataset.full;
+        dots.forEach(d=>d.classList.remove('is-active'));
+        dots[i].classList.add('is-active');
+        prev.classList.toggle('is-hidden', i===0);
+        next.classList.toggle('is-hidden', i===thumbs.length-1);
+      }
+      function index(){return thumbs.findIndex(t=>t.classList.contains('active'))}
+      prev.addEventListener('click', ()=>select(Math.max(0,index()-1)));
+      next.addEventListener('click', ()=>select(Math.min(thumbs.length-1,index()+1)));
+      thumbs.forEach((t,i)=>t.addEventListener('click', ()=>select(i)));
+      select(0);
+    });
+
+    // ===== Lightbox
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightboxImg');
+    document.querySelectorAll('.gallery-main-img').forEach(img=>{
+      img.addEventListener('click', ()=>{
+        lightboxImg.src = img.src;
+        lightbox.setAttribute('aria-hidden','false');
+      });
+    });
+    document.getElementById('lightboxClose').addEventListener('click',()=>lightbox.setAttribute('aria-hidden','true'));
+    lightbox.addEventListener('click', (e)=>{ if(e.target===lightbox) lightbox.setAttribute('aria-hidden','true') });
+    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') lightbox.setAttribute('aria-hidden','true') });
+  </script>
+</body>
+</html>
